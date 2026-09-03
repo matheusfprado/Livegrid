@@ -1,0 +1,14 @@
+#!/bin/sh
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  echo "Direct push to $branch is blocked locally. Create a branch and open a Pull Request."
+  echo "GitHub branch protection must also be enabled in repository settings."
+  exit 1
+fi
+
+if [ ! -f "BRANCH_README.md" ]; then
+  echo "Missing BRANCH_README.md. Copy BRANCH_README.template.md and describe this branch before pushing."
+  exit 1
+fi

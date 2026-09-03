@@ -28,6 +28,10 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Branch README
+        if: github.event_name == 'pull_request'
+        run: pnpm check:branch-readme
+
       - name: Lint
         run: pnpm lint
 

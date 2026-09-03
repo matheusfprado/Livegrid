@@ -10,7 +10,9 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "check:branch-readme": "node scripts/check-branch-readme.mjs"
   },
   "devDependencies": {
     "@livegrid/prettier-config": "workspace:*",
