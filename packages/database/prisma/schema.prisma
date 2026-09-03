@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RoomType {
+  CALL
+  BROADCAST
+}
+
+enum RoomStatus {
+  ACTIVE
+  ENDED
+}
+
+enum ParticipantRole {
+  HOST
+  PRESENTER
+  PARTICIPANT
+  VIEWER
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String?           @unique
+  passwordHash     String?
+  avatarUrl        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sessions         Session[]
+  ownedServers     AppServer[]       @relation("ServerOwner")
+  serverMemberships ServerMember[]
+  hostedRooms      Room[]            @relation("RoomHost")
+  roomParticipants RoomParticipant[]
+  messages         ServerMessage[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AppServer {
+  id        String         @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  owner     User           @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   ServerMember[]
+  channels  VoiceChannel[]
+  textChannels TextChannel[]
+  invites   ServerInvite[]
+  rooms     Room[]
+  messages  ServerMessage[]
+
+  @@index([ownerId])
+}
+
+model ServerMember {
+  id        String          @id @default(uuid())
+  serverId  String
+  userId    String
+  role      ParticipantRole @default(PARTICIPANT)
+  joinedAt  DateTime        @default(now())
+  server    AppServer       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, userId])
+  @@index([userId])
+}
+
+model VoiceChannel {
+  id        String    @id @default(uuid())
+  serverId  String
+  name      String
+  createdAt DateTime  @default(now())
+  server    AppServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  rooms     Room[]
+
+  @@index([serverId])
+}
+
+model TextChannel {
+  id        String          @id @default(uuid())
+  serverId  String
+  name      String
+  createdAt DateTime        @default(now())
+  server    AppServer       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages  ServerMessage[]
+
+  @@index([serverId])
+}
+
+model ServerMessage {
+  id        String      @id @default(uuid())
+  serverId  String
+  channelId String
+  authorId  String
+  content   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  server    AppServer   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  channel   TextChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+  @@index([channelId])
+  @@index([authorId])
+}
+
+model ServerInvite {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  serverId  String
+  createdById String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  server    AppServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+}
+
+model Room {
+  id        String            @id @default(uuid())
+  code      String            @unique
+  name      String?
+  type      RoomType
+  status    RoomStatus        @default(ACTIVE)
+  hostId    String?
+  serverId  String?
+  channelId String?
+  hostTokenHash String
+  host      User?             @relation("RoomHost", fields: [hostId], references: [id], onDelete: SetNull)
+  server    AppServer?        @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  channel   VoiceChannel?     @relation(fields: [channelId], references: [id], onDelete: SetNull)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  endedAt   DateTime?
+  participants RoomParticipant[]
+
+  @@index([serverId])
+  @@index([channelId])
+}
+
+model RoomParticipant {
+  id            String          @id @default(uuid())
+  roomId        String
+  userId        String?
+  guestIdentity String?
+  displayName   String
+  role          ParticipantRole
+  joinedAt      DateTime        @default(now())
+  leftAt        DateTime?
+  room          Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([roomId])
+  @@index([userId])
+  @@index([guestIdentity])
+}

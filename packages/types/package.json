@@ -1,0 +1,20 @@
+{
+  "name": "@livegrid/types",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@livegrid/eslint-config": "workspace:*",
+    "@livegrid/tsconfig": "workspace:*",
+    "eslint": "^9.35.0",
+    "typescript": "^5.9.2"
+  }
+}

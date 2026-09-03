@@ -1,0 +1,28 @@
+{
+  "name": "@livegrid/database",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0"
+  },
+  "devDependencies": {
+    "@livegrid/eslint-config": "workspace:*",
+    "@livegrid/tsconfig": "workspace:*",
+    "@types/node": "^24.3.1",
+    "eslint": "^9.35.0",
+    "prisma": "^6.15.0",
+    "typescript": "^5.9.2"
+  }
+}
